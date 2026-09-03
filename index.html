@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate Your Visit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,560&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-ambient:#FBF8F2;
+    --surface:#FFFFFF;
+    --ink:#201C16;
+    --ink-soft:#726A5C;
+    --hairline:#E9E3D6;
+    --gold:#B8862F;
+    --gold-deep:#8C6620;
+    --gold-soft:#F3E6C9;
+    --star-empty:#DCD5C6;
+    --positive:#2F6B4F;
+    --positive-soft:#E4F0E9;
+    --care:#A85338;
+    --care-soft:#F4E7E1;
+    --radius-card:22px;
+    --radius-field:12px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100vh;
+    background:var(--bg-ambient);
+    background-image:radial-gradient(1200px 600px at 50% -10%, #FDF6E6 0%, var(--bg-ambient) 55%);
+    color:var(--ink);
+    font-family:'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .gate-wrapper{
+    width:100%;
+    max-width:460px;
+  }
+
+  .gate-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:var(--radius-card);
+    padding:44px 40px 36px;
+    box-shadow:0 24px 60px -28px rgba(32,28,22,.22), 0 2px 8px -2px rgba(32,28,22,.06);
+    overflow:hidden;
+  }
+
+  .brand-mark{
+    font-family:'Fraunces', serif;
+    font-size:13px;
+    font-weight:560;
+    letter-spacing:.01em;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+  }
+
+  .panel{
+    display:none;
+  }
+  .panel.active{
+    display:block;
+    animation:panelIn .46s var(--ease) both;
+  }
+  @keyframes panelIn{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  h1.headline{
+    font-family:'Fraunces', serif;
+    font-weight:560;
+    font-size:26px;
+    line-height:1.25;
+    margin:0 0 8px;
+  }
+
+  p.subtext{
+    font-size:15px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    margin:0 0 28px;
+  }
+
+  /* --- Star rating --- */
+  .star-row{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin:8px 0 30px;
+    position:relative;
+  }
+
+  .star-btn{
+    appearance:none;
+    border:none;
+    background:transparent;
+    padding:6px;
+    width:52px;
+    height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    border-radius:50%;
+    transition:transform .18s var(--ease);
+  }
+  .star-btn:hover{ transform:translateY(-3px) scale(1.08); }
+  .star-btn:active{ transform:translateY(-1px) scale(.96); }
+  .star-btn:focus-visible{
+    outline:none;
+    box-shadow:0 0 0 3px var(--gold-soft), 0 0 0 5px var(--gold);
+  }
+
+  .star-btn svg{
+    width:30px;
+    height:30px;
+    fill:var(--star-empty);
+    transition:fill .2s var(--ease), transform .2s var(--ease);
+  }
+  .star-btn.is-filled svg{
+    fill:var(--gold);
+  }
+  .star-btn.is-preview svg{
+    fill:var(--gold-deep);
+  }
+
+  .rating-caption{
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    color:var(--gold-deep);
+    height:16px;
+    margin:-18px 0 26px;
+  }
+
+  /* burst particles for positive ratings */
+  .burst-dot{
+    position:absolute;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--gold);
+    pointer-events:none;
+    opacity:1;
+    animation:burstOut .62s var(--ease) forwards;
+  }
+  @keyframes burstOut{
+    to{
+      opacity:0;
+      transform:translate(var(--dx), var(--dy)) scale(.3);
+    }
+  }
+
+  /* --- Buttons --- */
+  .btn{
+    width:100%;
+    border:none;
+    border-radius:var(--radius-field);
+    padding:15px 20px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:transform .15s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn:focus-visible{
+    outline:none;
+    box-shadow:0 0 0 3px rgba(184,134,47,.28);
+  }
+
+  .btn-gold{
+    background:var(--gold);
+    color:#fff;
+    box-shadow:0 10px 24px -10px rgba(140,102,32,.55);
+  }
+  .btn-gold:hover{ background:var(--gold-deep); }
+
+  .btn-care{
+    background:var(--care);
+    color:#fff;
+    box-shadow:0 10px 24px -10px rgba(168,83,56,.45);
+  }
+  .btn-care:hover{ background:#8f4530; }
+
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink-soft);
+    padding:10px 12px;
+    font-weight:500;
+    font-size:13.5px;
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  .btn-ghost:hover{ color:var(--ink); }
+
+  /* --- Success panel --- */
+  .success-icon{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:var(--positive-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 0 20px;
+  }
+  .success-icon svg{
+    width:26px;
+    height:26px;
+  }
+  .success-icon path{
+    fill:none;
+    stroke:var(--positive);
+    stroke-width:3;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:40;
+    stroke-dashoffset:40;
+    animation:drawCheck .5s .15s var(--ease) forwards;
+  }
+  @keyframes drawCheck{ to{ stroke-dashoffset:0; } }
+
+  .actions-stack{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+  }
+
+  /* --- Form --- */
+  .field{
+    margin-bottom:16px;
+  }
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input,
+  .field textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:15px;
+    color:var(--ink);
+    background:#FCFAF6;
+    border:1px solid var(--hairline);
+    border-radius:var(--radius-field);
+    padding:12px 14px;
+    transition:border-color .18s var(--ease), box-shadow .18s var(--ease);
+  }
+  .field input:focus,
+  .field textarea:focus{
+    outline:none;
+    border-color:var(--care);
+    box-shadow:0 0 0 3px var(--care-soft);
+  }
+  .field textarea{
+    resize:vertical;
+    min-height:88px;
+    line-height:1.5;
+  }
+
+  .form-error{
+    font-size:13px;
+    color:var(--care);
+    margin:-8px 0 16px;
+    min-height:16px;
+  }
+
+  .care-icon{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:var(--care-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 0 20px;
+  }
+  .care-icon svg{ width:24px; height:24px; fill:var(--care); }
+
+  @media (max-width:480px){
+    .gate-card{ padding:34px 24px 28px; border-radius:18px; }
+    h1.headline{ font-size:22px; }
+    .star-btn{ width:44px; height:44px; }
+    .star-btn svg{ width:26px; height:26px; }
+  }
+
+  /* =========================================================
+     Ambient background motion
+  ========================================================== */
+  .bg-aurora{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .bg-aurora span{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(60px);
+    opacity:.35;
+    animation:auroraDrift 16s ease-in-out infinite;
+  }
+  .bg-aurora span:nth-child(1){
+    width:420px; height:420px;
+    top:-140px; left:-120px;
+    background:radial-gradient(circle, #F3E6C9 0%, transparent 70%);
+    animation-duration:18s;
+  }
+  .bg-aurora span:nth-child(2){
+    width:360px; height:360px;
+    bottom:-160px; right:-100px;
+    background:radial-gradient(circle, #F4E7E1 0%, transparent 70%);
+    animation-duration:22s;
+    animation-delay:-6s;
+  }
+  .bg-aurora span:nth-child(3){
+    width:300px; height:300px;
+    top:40%; right:-140px;
+    background:radial-gradient(circle, #E4F0E9 0%, transparent 70%);
+    animation-duration:20s;
+    animation-delay:-11s;
+  }
+  @keyframes auroraDrift{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    33%{ transform:translate(30px,-25px) scale(1.08); }
+    66%{ transform:translate(-25px,20px) scale(.95); }
+  }
+
+  .gate-wrapper{ position:relative; z-index:1; }
+
+  /* =========================================================
+     Card entrance + ambient glow
+  ========================================================== */
+  .gate-wrapper.is-revealing{
+    opacity:0;
+  }
+  .gate-wrapper.is-revealed{
+    animation:cardReveal .85s var(--ease) both;
+  }
+  @keyframes cardReveal{
+    0%{ opacity:0; transform:translateY(26px) scale(.94); filter:blur(6px); }
+    60%{ opacity:1; filter:blur(0); }
+    100%{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+  }
+
+  .gate-card{
+    animation:cardGlow 5s ease-in-out infinite;
+  }
+  @keyframes cardGlow{
+    0%,100%{ box-shadow:0 24px 60px -28px rgba(32,28,22,.22), 0 2px 8px -2px rgba(32,28,22,.06), 0 0 0 0 rgba(184,134,47,0); }
+    50%{ box-shadow:0 24px 60px -28px rgba(32,28,22,.22), 0 2px 8px -2px rgba(32,28,22,.06), 0 0 34px 0 rgba(184,134,47,.14); }
+  }
+
+  /* shimmering top edge sweep on the card */
+  .gate-card::before{
+    content:'';
+    position:absolute;
+    top:0; left:-40%;
+    width:40%; height:2px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation:edgeSweep 3.6s ease-in-out infinite;
+    animation-delay:2.4s;
+  }
+  @keyframes edgeSweep{
+    0%{ left:-40%; opacity:0; }
+    10%{ opacity:1; }
+    50%{ left:100%; opacity:1; }
+    60%{ opacity:0; }
+    100%{ left:100%; opacity:0; }
+  }
+
+  /* =========================================================
+     Button shine sweep
+  ========================================================== */
+  .btn{ position:relative; overflow:hidden; }
+  .btn-gold::after,
+  .btn-care::after{
+    content:'';
+    position:absolute;
+    top:0; left:-60%;
+    width:40%; height:100%;
+    background:linear-gradient(115deg, transparent, rgba(255,255,255,.45), transparent);
+    transform:skewX(-18deg);
+    transition:left .55s var(--ease);
+  }
+  .btn-gold:hover::after,
+  .btn-care:hover::after{ left:120%; }
+
+  /* subtle lift on primary buttons */
+  .btn-gold:hover, .btn-care:hover{ transform:translateY(-2px); box-shadow:0 16px 30px -14px rgba(140,102,32,.5); }
+  .btn-care:hover{ box-shadow:0 16px 30px -14px rgba(168,83,56,.4); }
+
+  /* star pop-in on filled selection */
+  .star-btn.is-filled svg{
+    animation:starPop .38s var(--ease);
+  }
+  @keyframes starPop{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(1.35) rotate(-8deg); }
+    100%{ transform:scale(1) rotate(0); }
+  }
+
+  /* =========================================================
+     Intro splash
+  ========================================================== */
+  #introOverlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(900px 500px at 50% 30%, #FFFDF7 0%, #FBF1D9 45%, #F3E1AE 100%);
+    overflow:hidden;
+  }
+  #introOverlay.intro-hide{
+    animation:introFadeOut .5s var(--ease) forwards;
+    pointer-events:none;
+  }
+  @keyframes introFadeOut{
+    to{ opacity:0; transform:scale(1.04); filter:blur(4px); }
+  }
+
+  .intro-rings{
+    position:absolute;
+    width:260px; height:260px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .intro-rings span{
+    position:absolute;
+    border-radius:50%;
+    border:1.5px solid var(--gold);
+    opacity:0;
+    animation:ringExpand 2s var(--ease) infinite;
+  }
+  .intro-rings span:nth-child(1){ width:70px; height:70px; animation-delay:0s; }
+  .intro-rings span:nth-child(2){ width:70px; height:70px; animation-delay:.45s; }
+  .intro-rings span:nth-child(3){ width:70px; height:70px; animation-delay:.9s; }
+  @keyframes ringExpand{
+    0%{ width:60px; height:60px; opacity:.65; }
+    100%{ width:240px; height:240px; opacity:0; }
+  }
+
+  .intro-content{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+
+  .intro-mark{
+    width:64px; height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 18px 40px -14px rgba(140,102,32,.55);
+    animation:markPop .6s var(--ease) both, markFloat 2.4s ease-in-out .6s infinite;
+  }
+  .intro-mark svg{ width:28px; height:28px; fill:#fff; }
+  @keyframes markPop{
+    0%{ transform:scale(.2) rotate(-30deg); opacity:0; }
+    70%{ transform:scale(1.15) rotate(4deg); opacity:1; }
+    100%{ transform:scale(1) rotate(0); opacity:1; }
+  }
+  @keyframes markFloat{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-6px); }
+  }
+
+  .intro-title{
+    font-family:'Fraunces', serif;
+    font-weight:560;
+    font-size:19px;
+    color:var(--ink);
+    letter-spacing:.01em;
+    display:flex;
+    gap:1px;
+  }
+  .intro-title span{
+    display:inline-block;
+    opacity:0;
+    animation:letterIn .5s var(--ease) forwards;
+  }
+  @keyframes letterIn{
+    from{ opacity:0; transform:translateY(8px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .intro-bar{
+    width:120px;
+    height:3px;
+    border-radius:3px;
+    background:var(--hairline);
+    overflow:hidden;
+    margin-top:2px;
+  }
+  .intro-bar::after{
+    content:'';
+    display:block;
+    height:100%;
+    width:100%;
+    background:var(--gold);
+    transform:translateX(-100%);
+    animation:barFill 1.7s .3s var(--ease) forwards;
+  }
+  @keyframes barFill{
+    to{ transform:translateX(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .panel.active,
+    .success-icon path,
+    .burst-dot,
+    .gate-card,
+    .gate-card::before,
+    .star-btn.is-filled svg,
+    .bg-aurora span,
+    .intro-rings span,
+    .intro-mark,
+    .intro-title span,
+    .intro-bar::after{ animation:none !important; }
+    .star-btn:hover{ transform:none; }
+    .gate-wrapper.is-revealing{ opacity:1; }
+    #introOverlay{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-aurora"><span></span><span></span><span></span></div>
+
+<div id="introOverlay">
+  <div class="intro-rings"><span></span><span></span><span></span></div>
+  <div class="intro-content">
+    <div class="intro-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2.5l2.95 6.13 6.55.72-4.86 4.66 1.28 6.6L12 17.4l-5.92 3.21 1.28-6.6L2.5 9.35l6.55-.72L12 2.5z"/></svg>
+    </div>
+    <p class="intro-title" id="introTitle"></p>
+    <div class="intro-bar"></div>
+  </div>
+</div>
+
+<div class="gate-wrapper is-revealing" id="gateWrapper">
+  <div class="gate-card" id="gateCard" aria-live="polite">
+
+    <p class="brand-mark" id="brandMark"></p>
+
+    <!-- Panel 1: Rating -->
+    <section class="panel active" id="panel-rating">
+      <h1 class="headline" id="ratingHeadline">How was your visit?</h1>
+      <p class="subtext">Tap a star to rate your experience. It takes ten seconds.</p>
+
+      <div class="star-row" id="starRow" role="radiogroup" aria-label="Star rating">
+        <!-- stars injected by JS -->
+      </div>
+      <p class="rating-caption" id="ratingCaption"></p>
+    </section>
+
+    <!-- Panel 2: Public review CTA -->
+    <section class="panel" id="panel-success">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 12.5L9.5 18 20 6"/></svg>
+      </div>
+      <h1 class="headline">Thank you — that means a lot.</h1>
+      <p class="subtext" id="successSubtext"></p>
+      <div class="actions-stack">
+        <button class="btn btn-gold" id="googleReviewBtn" type="button">Leave us a 5-star review on Google</button>
+        <button class="btn btn-ghost" id="dismissBtn" type="button">Maybe later</button>
+      </div>
+    </section>
+
+    <!-- Panel 3: Private feedback form -->
+    <section class="panel" id="panel-feedback">
+      <div class="care-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.03 2 11c0 2.4 1.05 4.57 2.76 6.16L4 22l5.13-1.68C10.03 20.76 11 21 12 21c5.52 0 10-4.03 10-9s-4.48-10-10-10z"/></svg>
+      </div>
+      <h1 class="headline">Help us make it right.</h1>
+      <p class="subtext" id="feedbackSubtext"></p>
+
+      <form id="feedbackForm" novalidate>
+        <div class="field">
+          <label for="fbName">Name</label>
+          <input type="text" id="fbName" name="name" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="fbContact">Phone or email</label>
+          <input type="text" id="fbContact" name="contact" autocomplete="tel email" required>
+        </div>
+        <div class="field">
+          <label for="fbMessage">How can we improve?</label>
+          <textarea id="fbMessage" name="message" required></textarea>
+        </div>
+        <p class="form-error" id="formError"></p>
+        <button class="btn btn-care" type="submit">Submit private feedback</button>
+      </form>
+    </section>
+
+    <!-- Panel 4: Private feedback thanks -->
+    <section class="panel" id="panel-thanks">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 12.5L9.5 18 20 6"/></svg>
+      </div>
+      <h1 class="headline">Thanks for letting us know.</h1>
+      <p class="subtext" id="thanksSubtext"></p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================
+     CONFIG — swap these to point the gate at a different store
+  ========================================================== */
+  const REVIEW_GATE_CONFIG = {
+    businessName: "Shreyash Traders",
+    googlePlaceId: "ChIJlUmMcmsAwTsRncPz16QITiE", // Shreyash Traders, Shahupuri, Kolhapur, Maharashtra
+    googleReviewUrl: "https://search.google.com/local/writereview?placeid=ChIJlUmMcmsAwTsRncPz16QITiE",
+    ratingThreshold: 4,                 // ratings >= this go to the public review path
+    privateFeedbackEndpoint: null,      // e.g. "https://your-api.example.com/feedback" — null = demo mode (logs to console)
+    starCount: 5
+  };
+
+  /* =========================================================
+     DOM references
+  ========================================================== */
+  const introOverlay    = document.getElementById('introOverlay');
+  const introTitle      = document.getElementById('introTitle');
+  const gateWrapper     = document.getElementById('gateWrapper');
+  const card            = document.getElementById('gateCard');
+  const brandMark        = document.getElementById('brandMark');
+  const starRow          = document.getElementById('starRow');
+  const ratingCaption    = document.getElementById('ratingCaption');
+  const ratingHeadline   = document.getElementById('ratingHeadline');
+
+  const panels = {
+    rating:   document.getElementById('panel-rating'),
+    success:  document.getElementById('panel-success'),
+    feedback: document.getElementById('panel-feedback'),
+    thanks:   document.getElementById('panel-thanks')
+  };
+
+  const successSubtext  = document.getElementById('successSubtext');
+  const googleReviewBtn = document.getElementById('googleReviewBtn');
+  const dismissBtn      = document.getElementById('dismissBtn');
+
+  const feedbackSubtext = document.getElementById('feedbackSubtext');
+  const feedbackForm    = document.getElementById('feedbackForm');
+  const formError       = document.getElementById('formError');
+  const thanksSubtext   = document.getElementById('thanksSubtext');
+
+  const captions = { 1:"We hear you.", 2:"We can do better.", 3:"Room to improve.", 4:"Glad to hear it!", 5:"Wonderful!" };
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* =========================================================
+     Intro splash — 2s brand moment before the card appears
+  ========================================================== */
+  function playIntro(){
+    // build the letter-by-letter title reveal
+    const name = REVIEW_GATE_CONFIG.businessName;
+    introTitle.innerHTML = '';
+    name.split('').forEach((ch, i) => {
+      const span = document.createElement('span');
+      span.textContent = ch === ' ' ? '\u00A0' : ch;
+      span.style.animationDelay = `${.15 + i * 0.03}s`;
+      introTitle.appendChild(span);
+    });
+
+    if(prefersReducedMotion){
+      introOverlay.remove();
+      gateWrapper.classList.remove('is-revealing');
+      gateWrapper.classList.add('is-revealed');
+      return;
+    }
+
+    // total intro time: 2s, then cross-fade into the card
+    window.setTimeout(() => {
+      introOverlay.classList.add('intro-hide');
+      gateWrapper.classList.remove('is-revealing');
+      gateWrapper.classList.add('is-revealed');
+      introOverlay.addEventListener('animationend', () => introOverlay.remove(), { once:true });
+    }, 2000);
+  }
+
+  /* =========================================================
+     Init — apply config-driven copy
+  ========================================================== */
+  function init(){
+    brandMark.textContent = REVIEW_GATE_CONFIG.businessName;
+    ratingHeadline.textContent = `How was your visit to ${REVIEW_GATE_CONFIG.businessName}?`;
+    successSubtext.textContent = `Would you mind sharing it publicly? A quick Google review helps other shoppers find ${REVIEW_GATE_CONFIG.businessName}.`;
+    feedbackSubtext.textContent = "This goes straight to our team, not public. We'd like the chance to sort it out.";
+    thanksSubtext.textContent = "Someone from our team will follow up soon.";
+    buildStars();
+    playIntro();
+  }
+
+  /* =========================================================
+     Star rating
+  ========================================================== */
+  const STAR_PATH = "M12 2.5l2.95 6.13 6.55.72-4.86 4.66 1.28 6.6L12 17.4l-5.92 3.21 1.28-6.6L2.5 9.35l6.55-.72L12 2.5z";
+
+  function buildStars(){
+    starRow.innerHTML = '';
+    for(let i = 1; i <= REVIEW_GATE_CONFIG.starCount; i++){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'star-btn';
+      btn.setAttribute('role','radio');
+      btn.setAttribute('aria-checked','false');
+      btn.setAttribute('aria-label', `Rate ${i} star${i>1?'s':''}`);
+      btn.dataset.value = i;
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="${STAR_PATH}"/></svg>`;
+
+      btn.addEventListener('mouseenter', () => previewStars(i));
+      btn.addEventListener('mouseleave', () => previewStars(0));
+      btn.addEventListener('focus', () => previewStars(i));
+      btn.addEventListener('blur', () => previewStars(0));
+      btn.addEventListener('click', (e) => selectRating(i, e));
+
+      starRow.appendChild(btn);
+    }
+  }
+
+  function previewStars(upTo){
+    const stars = starRow.querySelectorAll('.star-btn');
+    stars.forEach(s => {
+      const v = Number(s.dataset.value);
+      s.classList.toggle('is-preview', upTo > 0 && v <= upTo);
+    });
+    ratingCaption.textContent = upTo > 0 ? captions[upTo] : '';
+  }
+
+  function selectRating(value, evt){
+    const stars = starRow.querySelectorAll('.star-btn');
+    stars.forEach(s => {
+      const v = Number(s.dataset.value);
+      s.classList.toggle('is-filled', v <= value);
+      s.setAttribute('aria-checked', v === value ? 'true' : 'false');
+    });
+    ratingCaption.textContent = captions[value] || '';
+
+    if(value >= REVIEW_GATE_CONFIG.ratingThreshold && !prefersReducedMotion){
+      burst(evt.currentTarget);
+    }
+
+    window.setTimeout(() => {
+      if(value >= REVIEW_GATE_CONFIG.ratingThreshold){
+        showPanel('success');
+      } else {
+        showPanel('feedback');
+      }
+    }, prefersReducedMotion ? 0 : 260);
+  }
+
+  function burst(originEl){
+    const cardRect = card.getBoundingClientRect();
+    const originRect = originEl.getBoundingClientRect();
+    const cx = originRect.left - cardRect.left + originRect.width / 2;
+    const cy = originRect.top - cardRect.top + originRect.height / 2;
+    const count = 10;
+
+    for(let i = 0; i < count; i++){
+      const dot = document.createElement('span');
+      dot.className = 'burst-dot';
+      const angle = (Math.PI * 2 * i) / count;
+      const dist = 34 + Math.random() * 18;
+      dot.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+      dot.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+      dot.style.left = `${cx}px`;
+      dot.style.top = `${cy}px`;
+      card.appendChild(dot);
+      dot.addEventListener('animationend', () => dot.remove());
+    }
+  }
+
+  /* =========================================================
+     Panel switching
+  ========================================================== */
+  function showPanel(name){
+    Object.values(panels).forEach(p => p.classList.remove('active'));
+    panels[name].classList.add('active');
+  }
+
+  /* =========================================================
+     Google review CTA
+  ========================================================== */
+  googleReviewBtn.addEventListener('click', () => {
+    window.open(REVIEW_GATE_CONFIG.googleReviewUrl, '_blank', 'noopener,noreferrer');
+  });
+
+  dismissBtn.addEventListener('click', () => {
+    ratingHeadline.textContent = "Thanks again for stopping by!";
+  });
+
+  /* =========================================================
+     Private feedback form
+  ========================================================== */
+  feedbackForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.textContent = '';
+
+    const data = {
+      name: feedbackForm.name.value.trim(),
+      contact: feedbackForm.contact.value.trim(),
+      message: feedbackForm.message.value.trim(),
+      business: REVIEW_GATE_CONFIG.businessName,
+      submittedAt: new Date().toISOString()
+    };
+
+    if(!data.name || !data.contact || !data.message){
+      formError.textContent = 'Please fill in every field so we can follow up.';
+      return;
+    }
+
+    const submitBtn = feedbackForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    try {
+      if(REVIEW_GATE_CONFIG.privateFeedbackEndpoint){
+        const res = await fetch(REVIEW_GATE_CONFIG.privateFeedbackEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if(!res.ok) throw new Error('Request failed');
+      } else {
+        // Demo mode — no endpoint configured yet.
+        console.log('Private feedback (demo mode):', data);
+        await new Promise(r => setTimeout(r, 500));
+      }
+      feedbackForm.reset();
+      showPanel('thanks');
+    } catch (err){
+      formError.textContent = "Something went wrong sending that — please try again.";
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit private feedback';
+    }
+  });
+
+  init();
+})();
+</script>
+
+</body>
+</html>
